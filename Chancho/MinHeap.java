@@ -24,39 +24,69 @@ public class MinHeap<T extends Comparable<T>> implements IMinHeap<T> {
 
   @Override
   public void add(T element) throws HeapException {
-
-    if (isEmpty()) {
-      elements[0].setItem(element);
-      size++;
-      return;
+    if (size >= MAXIMUM_HEAP_SIZE) {
+      throw new HeapException("The heap is full");
     }
-
-    int i = 0;
-    while (element.compareTo(elements[i].getItem()) > 0) {
-      i++;
-      if (i >= MAXIMUM_HEAP_SIZE) {
-        throw new HeapException("No space on the Heap");
-      }
-      if (i == size) {
+    elements[size].setItem(element);
+    int cursor = size;
+    while (cursor > 0) {
+      if (elements[cursor].compareTo(elements[getParent(cursor)]) < 0) {
+        swap(cursor, getParent(cursor));
+        cursor = getParent(cursor);
+      } else {
         break;
       }
     }
-
-    for (int j = size; j > i; j++) {
-      elements[j] = elements[j - 1];
-    }
-    elements[i].setItem(element);
     size++;
+  }
+
+  private void swap(int i, int j) {
+    HeapEntry<T> temp = elements[i];
+    elements[i] = elements[j];
+    elements[j] = temp;
+  }
+
+  private int getParent(int index) {
+    return (index - 1) / 2;
   }
 
   @Override
   public T removeMin() {
     T min = getMin();
-    for (int i = 0; i < size - 1; i++) {
-      elements[i] = elements[i + 1];
-    }
+    elements[0] = elements[size - 1];
+    MHRebuild(0);
     size--;
     return min;
+  }
+
+  private void MHRebuild(int root) {
+    int cursor = root;
+
+    while (!isLeaf(cursor)) {
+      int minChild = getLeftChild(cursor);
+      if (getRightChild(cursor) < size && elements[getRightChild(cursor)]
+          .compareTo(elements[getLeftChild(cursor)]) < 0) {
+        minChild = getRightChild(cursor);
+      }
+      if (elements[minChild].compareTo(elements[cursor]) < 0) {
+        swap(minChild, cursor);
+        cursor = minChild;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private boolean isLeaf(int index) {
+    return getLeftChild(index) >= size;
+  }
+
+  private int getLeftChild(int index) {
+    return (index * 2) + 1;
+  }
+
+  private int getRightChild(int index) {
+    return (index * 2) + 2;
   }
 
   @Override
